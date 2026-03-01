@@ -1,7 +1,13 @@
 import axios from "axios";
 
+// Automatically switch between local and production
+const API_BASE_URL =
+  import.meta.env.MODE === "production"
+    ? "https://qunatumentaglement-production.up.railway.app"
+    : "http://127.0.0.1:8000";
+
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: API_BASE_URL,
 });
 
 export const askQuestion = async (
