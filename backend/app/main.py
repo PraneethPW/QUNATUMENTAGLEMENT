@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.core.database import engine
 from app.models.db_models import Base
@@ -8,21 +7,24 @@ from app.routes.qa_routes import router as qa_router
 
 
 # --------------------------------------------------
-# Create FastAPI App
+# FastAPI App Initialization
 # --------------------------------------------------
 app = FastAPI(
-    title="Quantum Language Model API",
-    description="Quantum-inspired QA system with embedding-based ranking + Gemini generation",
-    version="1.0.0"
+    title="Quantum Intelligence API",
+    description="Hybrid Semantic Ranking + Generative AI Backend",
+    version="1.0.0",
 )
 
 
 # --------------------------------------------------
-# CORS Configuration (React Frontend Support)
+# CORS Configuration (Frontend Access)
 # --------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ⚠ Change to frontend URL in production
+    allow_origins=[
+        "http://localhost:5173",  # local frontend
+        "https://qunatumentagelment.vercel.app",  # deployed frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +32,7 @@ app.add_middleware(
 
 
 # --------------------------------------------------
-# Startup Event - Create Tables Automatically
+# Startup Event - Ensure Tables Exist
 # --------------------------------------------------
 @app.on_event("startup")
 async def on_startup():
@@ -39,13 +41,13 @@ async def on_startup():
 
 
 # --------------------------------------------------
-# Health Check Endpoint
+# Root Health Check
 # --------------------------------------------------
 @app.get("/")
 async def root():
     return {
-        "message": "Quantum QA Engine is running 🚀",
-        "status": "healthy"
+        "status": "running",
+        "message": "Quantum Intelligence Backend is live 🚀",
     }
 
 
