@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+numpy
+torch
+pydantic
+pydantic-settings
+sqlalchemy
+asyncpg
+python-dotenv
+google-generativeai
