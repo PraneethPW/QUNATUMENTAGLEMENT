@@ -10,14 +10,9 @@ const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
-export const askQuestion = async (
-  question: string,
-  mode: "cosine" | "quantum"
-) => {
-  const response = await API.post("/qa/ask", {
-    question,
-    top_k: 3,
-    mode,
+export const analyzeSentiment = async (text: string) => {
+  const response = await API.post("/sentiment/analyze", {
+    text,
   });
 
   return response.data;
