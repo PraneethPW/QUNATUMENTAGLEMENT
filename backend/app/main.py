@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import engine
 from app.models.db_models import Base
-from app.routes.qa_routes import router as qa_router
+# from app.routes.qa_routes import router as qa_router
 from app.routes.sentiment_routes import router as sentiment_router
 
 
@@ -56,5 +56,5 @@ async def root():
 # --------------------------------------------------
 # Include Routers
 # --------------------------------------------------
-app.include_router(qa_router)
+# app.include_router(qa_router)
 app.include_router(sentiment_router)
