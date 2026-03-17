@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Automatically switch between local and production
 const API_BASE_URL =
   import.meta.env.MODE === "production"
     ? "https://qunatumentaglement-production.up.railway.app"
