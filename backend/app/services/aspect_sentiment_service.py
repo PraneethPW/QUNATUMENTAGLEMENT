@@ -1,41 +1,20 @@
 from transformers import pipeline
 import spacy
-from typing import List, Dict
 
-
-# --------------------------------------------------
-# Load Models Once (Startup Optimization)
-# --------------------------------------------------
-
-# Sentiment model
 sentiment_pipeline = pipeline(
     "sentiment-analysis",
     model="cardiffnlp/twitter-roberta-base-sentiment"
 )
 
-# Load SpaCy model for aspect extraction
 nlp = spacy.load("en_core_web_sm")
 
-
-# Map model labels to readable sentiments
 label_map = {
     "LABEL_0": "Negative",
     "LABEL_1": "Neutral",
     "LABEL_2": "Positive"
 }
 
-
-# --------------------------------------------------
-# Aspect Extraction
-# --------------------------------------------------
-
-def extract_aspects(text: str) -> List[str]:
-    """
-    Extract potential aspects (nouns) from text
-    Example:
-    'The battery is amazing but the screen is dull'
-    -> ['battery', 'screen']
-    """
+def extract_aspects(text: str):
 
     doc = nlp(text)
 
@@ -45,61 +24,33 @@ def extract_aspects(text: str) -> List[str]:
         if token.pos_ in ["NOUN", "PROPN"]:
             aspects.append(token.text.lower())
 
-    # remove duplicates
-    aspects = list(set(aspects))
-
-    return aspects
+    return list(set(aspects))
 
 
-# --------------------------------------------------
-# Aspect Sentiment Analysis
-# --------------------------------------------------
+async def analyze_aspect_sentiment(text: str):
 
-async def analyze_aspect_sentiment(text: str) -> Dict:
-    """
-    Perform aspect-based sentiment analysis.
-    """
+    aspects = extract_aspects(text)
 
-    try:
+    if not aspects:
+        aspects = ["overall"]
 
-        aspects = extract_aspects(text)
+    results = []
 
-        # fallback if no aspects detected
-        if not aspects:
-            aspects = ["overall"]
+    for aspect in aspects:
 
-        results = []
+        phrase = f"{aspect} in sentence: {text}"
 
-        for aspect in aspects:
+        result = sentiment_pipeline(phrase)[0]
 
-            # Create contextual phrase for model
-            phrase = f"{aspect} in sentence: {text}"
+        sentiment = label_map.get(result["label"], result["label"])
 
-            result = sentiment_pipeline(phrase)[0]
+        results.append({
+            "aspect": aspect,
+            "sentiment": sentiment,
+            "confidence": float(result["score"])
+        })
 
-            sentiment = label_map.get(result["label"], result["label"])
-
-            results.append({
-                "aspect": aspect,
-                "sentiment": sentiment,
-                "confidence": round(float(result["score"]), 4)
-            })
-
-        return {
-            "text": text,
-            "aspects": results
-        }
-
-    except Exception as e:
-
-        # Safe fallback so API never crashes
-        return {
-            "text": text,
-            "aspects": [
-                {
-                    "aspect": "error",
-                    "sentiment": "Unknown",
-                    "confidence": 0.0
-                }
-            ]
-        }
+    return {
+        "text": text,
+        "aspects": results
+    }

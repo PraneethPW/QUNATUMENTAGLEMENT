@@ -14,3 +14,20 @@ class AspectResult(BaseModel):
 class SentimentResponse(BaseModel):
     text: str
     aspects: List[AspectResult]
+
+
+class QuestionRequest(BaseModel):
+    question: str
+    top_k: int = 3
+
+
+class RankedAnswer(BaseModel):
+    id: int
+    content: str
+    confidence: float
+
+
+class QuestionResponse(BaseModel):
+    question: str
+    ranked_answers: List[RankedAnswer]
+    ai_generated_answer: str

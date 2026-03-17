@@ -3,11 +3,12 @@ uvicorn
 transformers
 torch
 spacy
+sentence-transformers
 pydantic
 pydantic-settings
-sentence-transformers
 sqlalchemy
 asyncpg
 google-genai
+numpy
 
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz

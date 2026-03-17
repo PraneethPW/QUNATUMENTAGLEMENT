@@ -1,21 +1,16 @@
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
-# Load model once globally
-_model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
+def generate_embedding(text: str):
 
-def generate_embedding(text: str) -> np.ndarray:
-    """
-    Generate normalized semantic embedding (quantum state |psi>)
-    """
+    vec = model.encode(text)
+    vec = np.array(vec)
 
-    vector = _model.encode(text)
-    vector = np.array(vector, dtype=np.float64)
-
-    norm = np.linalg.norm(vector)
+    norm = np.linalg.norm(vec)
 
     if norm == 0:
-        return vector
+        return vec
 
-    return vector / norm
+    return vec / norm
