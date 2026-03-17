@@ -23,16 +23,11 @@ app = FastAPI(
 # --------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # local frontend
-        "https://qunatumentagelment.vercel.app",  # deployed frontend
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
 # --------------------------------------------------
 # Startup Event - Ensure Tables Exist
 # --------------------------------------------------
