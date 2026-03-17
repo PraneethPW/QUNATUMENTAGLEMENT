@@ -1,9 +1,11 @@
 fastapi
 uvicorn
+transformers
+torch
+spacy
+pydantic
+pydantic-settings
+sentence-transformers
 sqlalchemy
 asyncpg
-python-dotenv
-pydantic-settings
 google-genai
-sentence-transformers
-torch
