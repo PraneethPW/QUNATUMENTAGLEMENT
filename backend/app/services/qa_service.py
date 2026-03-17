@@ -1,57 +1,79 @@
-import os
-import psycopg2
-from app.core.database import get_connection
-from app.core.embeddings import embed_text
-from app.services.gemini_service import GeminiService
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+import numpy as np
+
+from app.models.db_models import Answer
+from app.embeddings.embedding_model import generate_embedding
+from app.services.gemini_service import generate_ai_answer
 
 
-class QAService:
+# -------------------------
+# Quantum Formulation
+# -------------------------
 
-    def __init__(self):
-        self.gemini = GeminiService()
+def to_quantum_state(vec):
+    norm = np.linalg.norm(vec)
+    if norm == 0:
+        return vec
+    return vec / norm
 
-    def search_documents(self, query_embedding):
 
-        conn = None
-        cursor = None
+def density_matrix(psi):
+    return np.outer(psi, psi)
 
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
 
-            cursor.execute("""
-                SELECT content
-                FROM documents
-                ORDER BY embedding <-> %s
-                LIMIT 5
-            """, (query_embedding,))
+def quantum_similarity(vec1, vec2):
+    psi1 = to_quantum_state(vec1)
+    psi2 = to_quantum_state(vec2)
 
-            rows = cursor.fetchall()
+    rho1 = density_matrix(psi1)
+    rho2 = density_matrix(psi2)
 
-            return [row[0] for row in rows]
+    return float(np.trace(np.dot(rho1, rho2)))
 
-        finally:
 
-            if cursor:
-                cursor.close()
+# -------------------------
+# Main Ranking Function
+# -------------------------
 
-            if conn:
-                conn.close()
+async def rank_answers(question: str, top_k: int, db: AsyncSession):
 
-    def ask(self, question: str):
+    question_embedding = generate_embedding(question)
 
-        # create embedding
-        query_embedding = embed_text(question)
+    result = await db.execute(select(Answer))
+    answers = result.scalars().all()
 
-        # retrieve context
-        docs = self.search_documents(query_embedding)
-
-        context = "\n".join(docs)
-
-        # generate answer
-        answer = self.gemini.generate_answer(question, context)
-
+    if not answers:
         return {
-            "answer": answer,
-            "context": docs
+            "ranked_answers": [],
+            "ai_generated_answer": "No answers found in database."
         }
+
+    scored = []
+
+    for ans in answers:
+        answer_embedding = generate_embedding(ans.content)
+
+        score = quantum_similarity(
+            question_embedding,
+            answer_embedding
+        )
+
+        scored.append({
+            "id": ans.id,
+            "content": ans.content,
+            "confidence": round(score, 6)
+        })
+
+    scored.sort(key=lambda x: x["confidence"], reverse=True)
+
+    top_answers = scored[:top_k]
+
+    context_text = "\n".join([a["content"] for a in top_answers])
+
+    ai_response = await generate_ai_answer(question, context_text)
+
+    return {
+        "ranked_answers": top_answers,
+        "ai_generated_answer": ai_response
+    }
