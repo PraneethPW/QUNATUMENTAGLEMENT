@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 from typing import List
 
+
+# -----------------------------
+# Sentiment Schemas
+# -----------------------------
+
 class SentimentRequest(BaseModel):
     text: str
 
@@ -15,6 +20,10 @@ class SentimentResponse(BaseModel):
     text: str
     aspects: List[AspectResult]
 
+
+# -----------------------------
+# QA Schemas
+# -----------------------------
 
 class QuestionRequest(BaseModel):
     question: str
@@ -31,3 +40,11 @@ class QuestionResponse(BaseModel):
     question: str
     ranked_answers: List[RankedAnswer]
     ai_generated_answer: str
+
+
+# -----------------------------
+# Create Answer Schema
+# -----------------------------
+
+class AnswerCreate(BaseModel):
+    content: str
