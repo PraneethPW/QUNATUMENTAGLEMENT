@@ -14,7 +14,7 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/sentiment/analyze", {
+      const res = await fetch("https://qunatumentaglement-production.up.railway.app/sentiment/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
