@@ -1,16 +1,16 @@
 import numpy as np
 from app.quantum.embedding import generate_quantum_state
 
-def entangle_sentence(sentence: str):
 
-    words = sentence.split()[:3]
+def entangle_two_inputs(text1: str, text2: str):
+    """
+    Create quantum entangled state from two inputs
+    """
 
-    state = generate_quantum_state(words[0])
+    state1 = generate_quantum_state(text1)
+    state2 = generate_quantum_state(text2)
 
-    for word in words[1:]:
+    # Tensor product (entanglement)
+    entangled = np.kron(state1, state2)
 
-        next_state = generate_quantum_state(word)
-
-        state = np.kron(state, next_state)
-
-    return state / np.linalg.norm(state)
+    return entangled / np.linalg.norm(entangled)

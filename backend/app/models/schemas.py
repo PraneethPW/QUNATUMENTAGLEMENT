@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from typing import List
 
-
 # -----------------------------
 # Sentiment Schemas
 # -----------------------------
@@ -22,11 +21,17 @@ class SentimentResponse(BaseModel):
 
 
 # -----------------------------
-# QA Schemas
+# QA Schemas (UPDATED)
 # -----------------------------
 
 class QuestionRequest(BaseModel):
     question: str
+    top_k: int = 3
+
+
+class DualInputRequest(BaseModel):
+    input1: str
+    input2: str
     top_k: int = 3
 
 

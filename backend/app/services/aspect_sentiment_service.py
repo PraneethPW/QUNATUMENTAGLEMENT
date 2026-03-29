@@ -1,12 +1,10 @@
 from transformers import pipeline
-import spacy
 
+# Load sentiment model
 sentiment_pipeline = pipeline(
     "sentiment-analysis",
     model="cardiffnlp/twitter-roberta-base-sentiment"
 )
-
-nlp = spacy.load("en_core_web_sm")
 
 label_map = {
     "LABEL_0": "Negative",
@@ -14,17 +12,11 @@ label_map = {
     "LABEL_2": "Positive"
 }
 
+
+# 🔥 NO SPACY VERSION
 def extract_aspects(text: str):
-
-    doc = nlp(text)
-
-    aspects = []
-
-    for token in doc:
-        if token.pos_ in ["NOUN", "PROPN"]:
-            aspects.append(token.text.lower())
-
-    return list(set(aspects))
+    words = text.lower().split()
+    return list(set(words))[:5]
 
 
 async def analyze_aspect_sentiment(text: str):

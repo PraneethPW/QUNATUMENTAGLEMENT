@@ -1,6 +1,6 @@
 from transformers import pipeline
 
-# Load once
+# Load sentiment model
 sentiment_pipeline = pipeline(
     "sentiment-analysis",
     model="cardiffnlp/twitter-roberta-base-sentiment"
@@ -13,15 +13,36 @@ label_map = {
 }
 
 
-async def analyze_sentiment(text: str):
+# 🔥 SIMPLE ASPECT EXTRACTION (NO SPACY)
+def extract_aspects(text: str):
+    words = text.lower().split()
+    return list(set(words))[:5]  # take 5 unique words
 
-    result = sentiment_pipeline(text)[0]
 
-    label = label_map.get(result["label"], result["label"])
-    score = float(result["score"])
+async def analyze_aspect_sentiment(text: str):
+
+    aspects = extract_aspects(text)
+
+    if not aspects:
+        aspects = ["overall"]
+
+    results = []
+
+    for aspect in aspects:
+
+        phrase = f"{aspect} in sentence: {text}"
+
+        result = sentiment_pipeline(phrase)[0]
+
+        sentiment = label_map.get(result["label"], result["label"])
+
+        results.append({
+            "aspect": aspect,
+            "sentiment": sentiment,
+            "confidence": float(result["score"])
+        })
 
     return {
         "text": text,
-        "sentiment": label,
-        "confidence": round(score, 4)
+        "aspects": results
     }
