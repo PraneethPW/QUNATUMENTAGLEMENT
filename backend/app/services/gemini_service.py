@@ -1,25 +1,46 @@
-from google import genai
+import google.generativeai as genai
 from app.core.config import settings
 
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
+# Configure API key
+genai.configure(api_key=settings.GEMINI_API_KEY)
 
-async def generate_ai_answer(question, context):
 
-    prompt = f"""
-You are an intelligent NLP system.
+async def generate_ai_answer(user_input: str, prompt: str) -> str:
+    """
+    Calls Gemini API and returns cleaned response text.
+    """
 
-Context:
-{context}
+    final_prompt = f"""
+STRICT RULES:
+- Return ONLY valid JSON
+- No extra text before or after JSON
+- No markdown
+
+{prompt}
 
 User Input:
-{question}
-
-Respond STRICTLY in valid JSON if asked.
+{user_input}
 """
 
-    response = client.models.generate_content(
-        model="models/gemini-2.5-flash",
-        contents=prompt
-    )
+    try:
+        # ✅ CORRECT WAY
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
-    return response.text.strip()
+        response = model.generate_content(final_prompt)
+
+        text = ""
+
+        if hasattr(response, "text") and response.text:
+            text = response.text.strip()
+        elif response.candidates:
+            text = response.candidates[0].content.parts[0].text.strip()
+
+        # Cleanup markdown
+        if text.startswith("```"):
+            text = text.replace("```json", "").replace("```", "").strip()
+
+        return text
+
+    except Exception as e:
+        print("❌ Gemini API Error:", str(e))
+        return ""
