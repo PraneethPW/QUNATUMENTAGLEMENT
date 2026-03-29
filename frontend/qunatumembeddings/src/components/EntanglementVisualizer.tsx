@@ -1,109 +1,80 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Points, PointMaterial } from "@react-three/drei";
-import { useMemo, useRef } from "react";
-import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { motion, useReducedMotion } from "framer-motion";
 
-function ParticleField({ active }: { active: boolean }) {
-  const ref = useRef<THREE.Points>(null!);
+type Props = {
+  active?: boolean;
+  className?: string;
+};
 
-  // Generate random particles
-  const particles = useMemo(() => {
-    const count = 800;
-    const positions = new Float32Array(count * 3);
-
-    for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 6;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 6;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 6;
-    }
-
-    return positions;
-  }, []);
-
-  useFrame((state) => {
-    if (!ref.current) return;
-
-    // 🔥 rotate entire system
-    ref.current.rotation.y += 0.002;
-    ref.current.rotation.x += 0.001;
-
-    if (active) {
-      // 🔥 pulse effect
-      ref.current.scale.setScalar(
-        1 + Math.sin(state.clock.elapsedTime * 2) * 0.05
-      );
-    }
-  });
+export default function EntanglementVisualizer({ active = true, className }: Props) {
+  const prefersReducedMotion = useReducedMotion();
+  const shouldAnimate = active && !prefersReducedMotion;
 
   return (
-    <Points ref={ref} positions={particles} stride={3}>
-      <PointMaterial
-        transparent
-        color="#f97316"
-        size={0.03}
-        sizeAttenuation
-        depthWrite={false}
-      />
-    </Points>
-  );
-}
+    <div
+      className={[
+        "relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/60",
+        "min-h-[220px]",
+        className ?? "",
+      ].join(" ")}
+      aria-hidden="true"
+    >
+      <div className="absolute inset-0 opacity-70 [mask-image:radial-gradient(closest-side,white,transparent)]">
+        <div className="absolute -inset-24 bg-[conic-gradient(from_180deg_at_50%_50%,#fb923c,#f59e0b,#f97316,#fb923c)] blur-2xl" />
+      </div>
 
-// 🔥 CONNECTING LINES (ENTANGLEMENT FEEL)
-function Connections() {
-  const lines = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    const vertices = [];
+      <div className="absolute inset-0">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <motion.span
+            key={i}
+            className="absolute block h-2 w-2 rounded-full bg-orange-400 shadow-[0_0_20px_rgba(251,146,60,0.8)]"
+            initial={{ x: `${10 + i * 18}%`, y: `${30 + (i % 2) * 18}%`, opacity: 0.9 }}
+            animate={
+              shouldAnimate
+                ? {
+                    x: [`${10 + i * 18}%`, `${18 + i * 14}%`, `${10 + i * 18}%`],
+                    y: [`${30 + (i % 2) * 18}%`, `${18 + ((i + 1) % 2) * 30}%`, `${30 + (i % 2) * 18}%`],
+                    opacity: [0.6, 1, 0.6],
+                  }
+                : { opacity: 0.85 }
+            }
+            transition={
+              shouldAnimate
+                ? { duration: 3.6 + i * 0.4, repeat: Infinity, ease: "easeInOut" }
+                : undefined
+            }
+          />
+        ))}
 
-    for (let i = 0; i < 100; i++) {
-      vertices.push(
-        (Math.random() - 0.5) * 6,
-        (Math.random() - 0.5) * 6,
-        (Math.random() - 0.5) * 6
-      );
+        <motion.div
+          className="absolute inset-0"
+          animate={shouldAnimate ? { opacity: [0.25, 0.45, 0.25] } : { opacity: 0.35 }}
+          transition={shouldAnimate ? { duration: 2.8, repeat: Infinity, ease: "easeInOut" } : undefined}
+        >
+          <svg className="h-full w-full" viewBox="0 0 100 60" preserveAspectRatio="none">
+            <path
+              d="M5,35 C25,10 35,55 55,28 C70,8 82,50 95,22"
+              fill="none"
+              stroke="rgba(251,146,60,0.55)"
+              strokeWidth="0.8"
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d="M5,22 C22,46 35,6 52,30 C70,55 82,10 95,38"
+              fill="none"
+              stroke="rgba(245,158,11,0.35)"
+              strokeWidth="0.8"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        </motion.div>
+      </div>
 
-      vertices.push(
-        (Math.random() - 0.5) * 6,
-        (Math.random() - 0.5) * 6,
-        (Math.random() - 0.5) * 6
-      );
-    }
-
-    geometry.setAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(vertices, 3)
-    );
-
-    return geometry;
-  }, []);
-
-  return (
-    <lineSegments geometry={lines}>
-      <lineBasicMaterial color="#fb923c" transparent opacity={0.3} />
-    </lineSegments>
-  );
-}
-
-export default function EntanglementVisualizer({ active }: { active: boolean }) {
-  return (
-    <div className="h-[400px] w-full mt-6 mb-6 rounded-xl overflow-hidden border border-zinc-800">
-
-      <Canvas camera={{ position: [0, 0, 6] }}>
-
-        {/* Ambient glow */}
-        <ambientLight intensity={0.5} />
-
-        {/* 🔥 PARTICLES */}
-        <ParticleField active={active} />
-
-        {/* 🔥 CONNECTIONS */}
-        <Connections />
-
-        {/* Controls (optional rotation) */}
-        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
-
-      </Canvas>
-
+      <div className="relative p-5">
+        <div className="text-sm font-semibold text-orange-300">Entanglement Field</div>
+        <div className="mt-1 text-xs text-zinc-400">
+          {active ? "Synchronizing context vectors…" : "Paused"}
+        </div>
+      </div>
     </div>
   );
 }

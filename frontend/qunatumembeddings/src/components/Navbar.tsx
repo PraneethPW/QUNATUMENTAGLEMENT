@@ -8,6 +8,10 @@ export default function Navbar() {
           Sentiment AI
         </h1>
 
+        <span className="text-sm text-gray-400">
+          Powered by Gemini ⚡
+        </span>
+
       </div>
 
     </nav>

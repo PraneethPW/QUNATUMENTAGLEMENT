@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// 🔥 AUTO SWITCH BASE URL
 const API_BASE_URL =
   import.meta.env.MODE === "production"
     ? "https://qunatumentaglement-production.up.railway.app"
@@ -9,12 +10,10 @@ const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// 🔥 NEW: Dual input API
-export const askDual = async (input1: string, input2: string) => {
-  const response = await API.post("/qa/ask-dual", {
-    input1,
-    input2,
-    top_k: 3,
+// 🔥 SENTIMENT API
+export const analyzeSentiment = async (text: string) => {
+  const response = await API.post("/sentiment/analyze", {
+    text,
   });
 
   return response.data;
