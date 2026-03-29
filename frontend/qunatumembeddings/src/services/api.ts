@@ -9,9 +9,12 @@ const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
-export const analyzeSentiment = async (text: string) => {
-  const response = await API.post("/sentiment/analyze", {
-    text,
+// 🔥 NEW: Dual input API
+export const askDual = async (input1: string, input2: string) => {
+  const response = await API.post("/qa/ask-dual", {
+    input1,
+    input2,
+    top_k: 3,
   });
 
   return response.data;

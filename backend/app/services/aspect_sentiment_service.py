@@ -1,6 +1,7 @@
 from transformers import pipeline
+from app.services.gemini_service import generate_ai_answer
+import json
 
-# Load sentiment model
 sentiment_pipeline = pipeline(
     "sentiment-analysis",
     model="cardiffnlp/twitter-roberta-base-sentiment"
@@ -13,25 +14,44 @@ label_map = {
 }
 
 
-# 🔥 NO SPACY VERSION
-def extract_aspects(text: str):
+def extract_aspects_basic(text: str):
     words = text.lower().split()
     return list(set(words))[:5]
 
 
 async def analyze_aspect_sentiment(text: str):
 
-    aspects = extract_aspects(text)
+    # 🔹 Step 1: Context + aspect extraction (LLM)
+    context_prompt = f"""
+Analyze the sentence:
+"{text}"
+
+Return JSON:
+{{
+  "aspects": ["..."],
+  "explanation": "..."
+}}
+"""
+
+    try:
+        ai_response = await generate_ai_answer(text, context_prompt)
+        parsed = json.loads(ai_response)
+
+        aspects = parsed.get("aspects", [])
+        explanation = parsed.get("explanation", "")
+
+    except Exception:
+        aspects = extract_aspects_basic(text)
+        explanation = "Basic extraction used"
 
     if not aspects:
         aspects = ["overall"]
 
+    # 🔹 Step 2: Sentiment
     results = []
 
     for aspect in aspects:
-
         phrase = f"{aspect} in sentence: {text}"
-
         result = sentiment_pipeline(phrase)[0]
 
         sentiment = label_map.get(result["label"], result["label"])
@@ -44,5 +64,6 @@ async def analyze_aspect_sentiment(text: str):
 
     return {
         "text": text,
+        "explanation": explanation,
         "aspects": results
     }

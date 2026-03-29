@@ -1,73 +1,93 @@
-import { motion } from "framer-motion";
 import { useState } from "react";
 import QuestionInput from "../components/QuestionInput";
-import AspectCard from "../components/AspectCard";
-import { analyzeSentiment } from "../services/api";
+import AnswerCard from "../components/AnswerCard";
+import EntanglementVisualizer from "../components/EntanglementVisualizer";
+import { askDual } from "../services/api";
 
 export default function Dashboard() {
 
-  const [aspects, setAspects] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [answers, setAnswers] = useState<any[]>([]);
+  const [aiAnswer, setAiAnswer] = useState("");
 
-  const handleSubmit = async (text: string) => {
+  const handleSubmit = async (input1: string, input2: string) => {
+    setLoading(true);
 
     try {
-
-      setLoading(true);
-      setAspects([]);
-
-      const res = await analyzeSentiment(text);
-
-      setAspects(res.aspects);
-
+      const res = await askDual(input1, input2);
+      setAnswers(res.ranked_answers);
+      setAiAnswer(res.ai_generated_answer);
     } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.error("Error:", err);
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="max-w-5xl mx-auto mt-24 px-6 text-white">
 
-      <section className="flex flex-col items-center justify-center text-center pt-32 pb-20 px-6">
+      {/* 🔥 HEADER */}
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-bold text-orange-400">
+          Dual Input Entanglement Engine
+        </h1>
+        <p className="text-gray-400 mt-2">
+          Merge two concepts and generate intelligent insights using quantum-inspired reasoning.
+        </p>
+      </div>
 
-        <motion.h1
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-6xl font-extrabold text-orange-500"
-        >
-          Aspect Sentiment Analyzer
-        </motion.h1>
+      {/* INPUT */}
+      <QuestionInput onSubmit={handleSubmit} />
 
-        <div className="mt-12 w-full max-w-3xl">
-          <QuestionInput onSubmit={handleSubmit} />
-        </div>
+      {/* LOADING TEXT */}
+      {loading && (
+        <p className="text-center text-orange-400 animate-pulse mt-4">
+          ⚡ Entangling inputs... collapsing quantum state...
+        </p>
+      )}
 
-        {loading && (
-          <p className="mt-8 text-orange-400">
-            Analyzing aspects...
+      {/* 🔥 SECTION TITLE */}
+      {(loading || aiAnswer) && (
+        <h2 className="text-center text-sm text-gray-500 mt-6 mb-2 tracking-widest">
+          ENTANGLEMENT VISUALIZATION
+        </h2>
+      )}
+
+      {/* VISUAL */}
+      <EntanglementVisualizer active={loading || aiAnswer !== ""} />
+
+      {/* AI RESPONSE */}
+      {aiAnswer && (
+        <div className="bg-zinc-900 p-6 rounded-xl mb-6 border border-zinc-700 transition-all duration-500">
+          <h2 className="text-orange-400 mb-2 text-lg font-semibold">
+            AI Response
+          </h2>
+          <p className="text-gray-300 whitespace-pre-line leading-relaxed">
+            {aiAnswer}
           </p>
-        )}
+        </div>
+      )}
 
-        {aspects.length > 0 && (
+      {/* RANKED ANSWERS */}
+      {answers.length > 0 && (
+        <>
+          <h2 className="text-sm text-gray-500 mb-2 tracking-widest">
+            CONTEXTUAL MATCHES
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12 max-w-3xl">
-
-            {aspects.map((a, index) => (
-              <AspectCard
-                key={index}
-                aspect={a.aspect}
-                sentiment={a.sentiment}
-                confidence={a.confidence}
+          <div className="grid gap-4">
+            {answers.map((ans) => (
+              <AnswerCard
+                key={ans.id}
+                content={ans.content}
+                confidence={ans.confidence}
               />
             ))}
-
           </div>
+        </>
+      )}
 
-        )}
-
-      </section>
     </div>
   );
 }

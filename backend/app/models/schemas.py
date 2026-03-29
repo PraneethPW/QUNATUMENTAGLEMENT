@@ -17,11 +17,12 @@ class AspectResult(BaseModel):
 
 class SentimentResponse(BaseModel):
     text: str
+    explanation: str
     aspects: List[AspectResult]
 
 
 # -----------------------------
-# QA Schemas (UPDATED)
+# QA Schemas
 # -----------------------------
 
 class QuestionRequest(BaseModel):
@@ -46,10 +47,6 @@ class QuestionResponse(BaseModel):
     ranked_answers: List[RankedAnswer]
     ai_generated_answer: str
 
-
-# -----------------------------
-# Create Answer Schema
-# -----------------------------
 
 class AnswerCreate(BaseModel):
     content: str

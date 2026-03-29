@@ -6,7 +6,4 @@ router = APIRouter(prefix="/sentiment", tags=["Sentiment"])
 
 @router.post("/analyze", response_model=SentimentResponse)
 async def sentiment_analysis(request: SentimentRequest):
-
-    result = await analyze_aspect_sentiment(request.text)
-
-    return result
+    return await analyze_aspect_sentiment(request.text)
